@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang='pt-BR'>
+
+<head>
+  <meta charset='UTF-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>Checklist Construção de Violão (Sistema Espanhol) - Baratieri Luthieria</title>
+  <link rel="stylesheet" href="checklist-violao.css" />
+  <!--
+    VERSÃO APRIMORADA
+    ==================
+    • Capa imprimível com logotipo/nome da oficina e dados do cliente.
+    • Índice automático (TOC) com links para cada etapa.
+    • Barra de progresso fixa no topo em tela; visível opcionalmente na impressão.
+    • Salvamento automático (localStorage) de todos os campos, medidas e checkboxes (compatível com versão anterior V3).
+    • Botão "Gerar PDF" => abre diálogo de impressão (use "Salvar como PDF"). Antes de imprimir, todas as etapas são abertas automaticamente.
+    • Estilos de impressão @media print para capa, sumário, ocultar botões interativos desnecessários e mostrar marcações concluídas.
+    • Marcação de classe .checked-row quando subetapa marcada (melhor contraste na impressão).
+    • Ancoragem: cada etapa possui id="etapa-*" para navegação.
+    • Fácil separação em arquivos externos (consulte comentário ao final do arquivo para instruções).
+  -->
+</head>
+
+<body>
+
+  <!-- ==========================
+     CAPA IMPRESSA
+     (Preenchida dinamicamente na hora de imprimir)
+========================== -->
+  <div class='cover' id='coverPrint'>
+    <img id='coverLogo' class='cover-logo' alt='Logotipo Baratieri Luthieria' src='' style='display:none;' />
+    <h1>Baratieri Luthieria</h1>
+    <h2>Checklist de Construção de Violão (Sistema Espanhol)</h2>
+    <table>
+      <tbody>
+        <tr>
+          <th>Cliente</th>
+          <td id='coverCliente'></td>
+        </tr>
+        <tr>
+          <th>Instrumento</th>
+          <td id='coverInstrumento'></td>
+        </tr>
+        <tr>
+          <th>Cordas</th>
+          <td id='coverCordas'></td>
+        </tr>
+        <tr>
+          <th>Madeira Tampo</th>
+          <td id='coverTampo'></td>
+        </tr>
+        <tr>
+          <th>Madeira Fundo/Laterais</th>
+          <td id='coverFundo'></td>
+        </tr>
+        <tr>
+          <th>Madeira Braço</th>
+          <td id='coverBraco'></td>
+        </tr>
+        <tr>
+          <th>Filetes</th>
+          <td id='coverFiletes'></td>
+        </tr>
+        <tr>
+          <th>Headplate</th>
+          <td id='coverHeadplate'></td>
+        </tr>
+        <tr>
+          <th>Escala (mm)</th>
+          <td id='coverEscala'></td>
+        </tr>
+      </tbody>
+    </table>
+    <p id='coverData'></p>
+  </div>
+
+  <!-- ==========================
+     PROGRESSO TOPO (sticky)
+========================== -->
+  <div class='top-progress-bar'>
+    <div class='progress-wrapper' aria-label='Progresso geral da construção'>
+      <div class='progress-bar-bg'>
+        <div class='progress-bar-fill' id='progressFill'></div>
+      </div>
+      <div class='progress-text' id='progressText'>0% concluído</div>
+    </div>
+  </div>
+
+  <h1>Checklist Luthieria de Cordas (Sistema Espanhol)</h1>
+
+  <!-- ==========================
+     BOTÕES GERAIS / PDF
+========================== -->
+  <div class='form-actions' style='margin-bottom:1.25rem;'>
+    <button id='btnGerarPDF' class='btn btn-primary' type='button'
+      title='Abrir diálogo de impressão para gerar PDF'>Gerar PDF / Imprimir</button>
+    <button id='btnExpandAll' class='btn btn-secondary' type='button' title='Expandir todas as etapas'>Expandir
+      Tudo</button>
+    <button id='btnCollapseAll' class='btn btn-secondary' type='button' title='Recolher todas as etapas'>Recolher
+      Tudo</button>
+  </div>
+
+  <!-- ==========================
+     ÍNDICE AUTOMÁTICO
+========================== -->
+  <nav id='toc' aria-labelledby='tocTitle' role='navigation'>
+    <h2 id='tocTitle'>Índice</h2>
+    <ul id='tocList'>
+      <!-- preenchido via JS -->
+    </ul>
+  </nav>
+
+  <!-- ==========================
+     FORMULÁRIO DADOS BÁSICOS
+========================== -->
+  <section class='form-section' aria-labelledby='formDadosBasicos'>
+    <h2 id='formDadosBasicos'>Dados Básicos do Instrumento</h2>
+    <div class='form-grid'>
+      <div><label for='nomeCliente'>Cliente
+          <input type='text' id='nomeCliente' placeholder='Nome do Cliente' name="Ciente" /></div>
+      <div><label for='tipoInstrumento'>Tipo de Instrumento
+          <input type='text' id='tipoInstrumento' placeholder='Violão Clássico, Viola...' /></div>
+      <div><label for='quantasCordas'>Quantas Cordas
+          <input type='text' id='quantasCordas' placeholder='4, 6, 7, 10' /></div>
+      <div><label for='tipoCordas'>Tipo de Cordas
+          <input type='text' id='tipoCordas' placeholder='Nylon, Aço' /></div>
+      <div><label for='madeiraTampo'>Madeira do Tampo
+          <input type='text' id='madeiraTampo' placeholder='Abeto, Cedro' /></div>
+      <div><label for='madeiraFundo'>Madeira Fundo/Lateriais
+          <input type='text' id='madeiraFundo' placeholder='Jacarandá, Imbuia...' /></div>
+      <div><label for='madeiraBraco'>Madeira do Braço
+          <input type='text' id='madeiraBraco' placeholder='Cedro, Mogno' /></div>
+      <div><label for='madeiraEscala'>Madeira da Escala
+          <input type='text' id='madeiraEscala' placeholder='Pau Ferro, Ipê...' /></div>
+      <div><label for='madeiraHeadplate'>Madeira da Soleta
+          <input type='text' id='madeiraHeadplate' placeholder='Imbuia, Marupá' /></div>
+      <div><label for='madeiraFiletes'>Modelo Filetes
+          <input type='text' id='madeiraFiletes' placeholder='Descrever detalhes' /></div>
+      <div><label for='madeiraEncosto'>Encosto de Braço
+          <input type='text' id='madeiraEncosto' placeholder='Possui? Madeira?' /></div>
+    </div>
+    <div class='form-actions'>
+      <button id='btnDetalhesGerais' class='btn btn-primary' type='button'>DETALHES e MEDIDAS</button>
+      <button id='btnSalvarDados' class='btn btn-secondary' type='button' title='Salvar imediatamente (backup)'>Salvar
+        Agora</button>
+      <button id='btnLimparDados' class='btn btn-danger' type='button' title='Remover dados salvos'>Limpar
+        Dados</button>
+    </div>
+    <div id='detalhesGerais' role='region' aria-live='polite'>
+      <p class='note-mm'>Valores sugeridos típicos para violão clássico 650 mm. Ajuste conforme projeto.</p>
+      <h3>Travessas do Tampo:</h3>
+      <div class='medidas-grid'>
+        <div><label for='AltTravessaTampo'>Altura (mm)</label><input type='number' id='AltTravessaTampo' step='0.1'
+            placeholder='10' /></div>
+        <div><label for='LarTravessaTampo'>Largura (mm)</label><input type='number' id='LarTravessaTampo' step='0.1'
+            placeholder='7' /></div>
+        <div><label for='LarChanfroTampo'>Chanfro (mm)</label><input type='text' id='LarChanfroTampo'
+            placeholder='50mm-3mm' /></div>
+        <div><label for='TipoTravessTampo'>Chanfro (mm)</label><input type='text' id='TipoTravessTampo'
+            placeholder='1 e 2 base reta, 3 concava' /></div>
+      </div>
+      <h3>Barras do Fundo:</h3>
+      <div class='medidas-grid'>
+        <div><label for='AltBarraFundo'>Altura (mm)</label><input type='number' id='AltBarraFundo' step='0.1'
+            placeholder='15' /></div>
+        <div><label for='LarBarraFundo'>Largura (mm)</label><input type='number' id='LarBarraFundo' step='0.1'
+            placeholder='9' /></div>
+        <div><label for='LarChanfroFundo'>Chanfro (mm)</label><input type='text' id='LarChanfroFundo'
+            placeholder='50mm-3mm' /></div>
+        <div><label for='tipoBarraFundo'>Modelo das Barras</label><input type='text' id='tipoBarraFundo'
+            placeholder='1 base reta, 2 e 3 concava' /></div>
+      </div>
+      <h3>Faixas Laterais:</h3>
+      <div class='medidas-grid'>
+        <div><label for='MedFaixaFront'>Largura Tróculo (mm)</label><input type='number' id='MedFaixaFront' step='0.1'
+            placeholder='85' /></div>
+        <div><label for='MedFaixaBack'>Largura Culatra (mm)</label><input type='number' id='MedFaixaBack' step='0.1'
+            placeholder='95' /></div>
+        <div><label for='MedFaixaComp'>Comprimento da Faixa (mm)</label><input type='number' id='MedFaixaComp' step='5'
+            placeholder='800' /></div>
+        <div><label for='MedDobrasFaixas'>Ponto das Dobras</label><input type='text' id='MedDobrasFaixas'
+            placeholder='32 cm - 32 cm' /></div>
+      </div>
+      <h3>Tampo e Fundo</h3>
+      <div class='medidas-grid'>
+        <div><label for='medEspTampo'>Espessura Tampo</label><input type='number' id='medEspTampo' step='0.1'
+            placeholder='2.2' /></div>
+        <div><label for='medEspFundo'>Espessura Fundo</label><input type='number' id='medEspFundo' step='0.1'
+            placeholder='2.8' /></div>
+        <div><label for='medCompCorpo'>Comprimento Corpo</label><input type='number' id='medCompCorpo' step='0.1'
+            placeholder='485' /></div>
+        <div><label for='medLargOmbro'>Largura Bojo Superior</label><input type='number' id='medLargOmbro' step='0.1'
+            placeholder='280' /></div>
+        <div><label for='medLargCintura'>Largura Cintura</label><input type='number' id='medLargCintura' step='0.1'
+            placeholder='238' /></div>
+        <div><label for='medLargBasso'>Largura Bojo Inferior</label><input type='number' id='medLargBasso' step='0.1'
+            placeholder='370' /></div>
+      </div>
+      <h3>Braço</h3>
+      <div class='medidas-grid'>
+        <div><label for='medAltBraPes'>Largura Braço (Pestana)</label><input type='number' id='medAltBraPes' step='0.1'
+            placeholder='52' /></div>
+        <div><label for='medAltBraC12'>Largura Braço (Casa 12)</label><input type='number' id='medAltBraC12' step='0.1'
+            placeholder='62' /></div>
+        <div><label for='medEspBraPes'>Espessura Braço + Escala (Pestana)</label><input type='number' id='medEspBraPes'
+            step='0.1' placeholder='21' /></div>
+        <div><label for='medEspBraCul'>Espessura Braço + Escala (Culatra)</label><input type='number' id='medEspBraCul'
+            step='0.1' placeholder='23' /></div>
+      </div>
+      <h3>Escala</h3>
+      <div class='medidas-grid'>
+        <div><label for='medEscala'>Escala / Diapasão</label><input type='number' id='medEscala' step='0.1'
+            placeholder='650' /></div>
+      </div>
+      <h3>Cavalete</h3>
+      <div class='medidas-grid'>
+        <div><label for='medCavalete'>Escala / Diapasão</label><input type='number' id='medCavalete' step='0.1'
+            placeholder='650' /></div>
+      </div>
+      <div>
+
+        <h3>Observações Gerais a considerar:</h3>
+        <textarea id='ConsidGerais' placeholder='Escrever detalhes especificos para a construção'></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================
+     ETAPAS
+========================== -->
+  <main id='etapasContainer'>
+    <!-- Preparação de Materiais -->
+    <section class='etapa' id='etapa-prep-materiais' data-etapa='prep-materiais'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Preparação de Materiais</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='prep1' class='sub-check' />
+          <label for='prep1' class='subetapa-label'>Selecionar e climatizar madeiras</label>
+          <button data-target='detalhe-prep1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-prep1' class='detalhe-tecnico'>Escolher as madeiras para o projeto (tampa harmônica, fundo,
+            laterais, braço, reforços, varetas, espelhos, filetes e roseta). Devem ser secas - Ideal:
+            8–12%. Levar em consideração Timbre, estética e estabilidade.
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='prep2' class='sub-check' />
+          <label for='prep2' class='subetapa-label'>Cortar blanks (tampo, fundo, laterais, braço)</label>
+          <button data-target='detalhe-prep2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-prep2' class='detalhe-tecnico'>Com base nos planos da guitarra, marque todas
+            as medidas da tampa, fundo, braço, laterais, reforços, varetas, espelhos e faixas. Prepara as madeiras
+            do projeto, com cortes brutos, um pouco maior que o necessário para o projeto e alinhadas minimamente</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Braço / Taco Espanhol & Encaixe do Braço -->
+    <section class='etapa' id='etapa-solera' data-etapa='solera'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>braço / Taco Espanhol & Encaixe do Braço</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol1' class='sub-check' />
+          <label for='sol1' class='subetapa-label'>Moldagem bruta do braço (Espessura, Comprimento)</label>
+          <button data-target='detalhe-sol1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol1' class='detalhe-tecnico'>
+            <h5>Madeira:</h5>Cedro, Mogno, Cinamon...e reforço do Braço com madeira dura (Ipê,...).
+            <h5>Medidas:</h5> Largura: 100mm; Espessura: 22 mm; Comprimento: 800mm.
+            <h5>Como Fazer:</h5>
+            <ul>
+              <li>OBS: Pode-se usar a propria madeira do braço para fazer o taco do Tróculo</li>
+              <li><strong>Corte da peça do braço ao meio: </strong>
+                <P>Marcaremos uma linha no centro, em toda a sua extensão, para servir de
+                  guia ao cortar com a serra. Para este corte, usar serrote ou serra circular.</P>
+              </li>
+              <li><strong>Preparação do reforço central ou espinha do braço:</strong>
+                <p>Precisamos preparar uma tira de ébano ou qualquer madeira nobre tão longa quanto o braço do
+                  instrumento a ser construído, tão grossa quanto a largura das peças do braço e com 6 a 8 mm de
+                  espessura.
+                  Ela deve estar bem calibrada e com faces paralelas para que se encaixem perfeitamente com as outras
+                  peças.</p>
+              </li>
+              <li><strong>Plainar e lixar as superfícies a serem coladas</strong>
+                <p>Depois de cortar ao meio, teremos duas peças medindo aproximadamente 700 x 35 x 25 mm
+                  Agora precisamos ajustá-las para que se encaixem perfeitamente para a colagem
+                  com a nervura. Podemos fazer esse processo uma a uma ou ambas ao mesmo tempo. Colocaremos as peças
+                  paralelamente, com o corte voltado para cima, em uma morsa.
+                  Se as marcas forem muito profundas, usaremos plaina para fazer várias passagens, usando
+                  muito pouco ferro, pois isso pode desgastá-las demais, até que as marcas da serra desapareçam.
+                  À medida que aplainamos, verificaremos com uma régua, sobrepondo-a, para garantir que estejam
+                  completamente retas e planas. Elas também devem estar quadradas. É melhor realizar esta etapa
+                  removendo o mínimo de madeira possível, pois ela pode ficar muito estreita e, portanto, inutilizável.
+                  Embora tenhamos margem para o reforço das nervuras, é importante ter isso em mente para não excedê-la.
+                  É melhor sobrar do que
+                  faltar.</p>
+              </li>
+              <li><strong>Colagem das três peças:</strong></li>
+              <p>Nós os colamos e, usando vários grampos, os prendemos juntos, certificando-nos
+                de que os três pedaços de madeira estejam nivelados. Não há necessidade
+                de colocar cavilhas de proteção, porque mesmo que a madeira esteja levemente denteada, não importa,
+                porque deveríamos ter madeira extra, e quando cortarmos o formato do braço, ele desaparecerá.</p>
+              <li><strong>Calibragem do braço:</strong></li>
+              <p>Depois de 24 horas de secagem, removeremos os grampos e, usando o melhor lado que pudermos ver,
+                alisaremos e lixaremos para que fique perfeitamente plano.</p>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol2' class='sub-check' />
+          <label for='sol2' class='subetapa-label'>Cortar o Headstock 15 graus e preparar</label>
+          <button data-target='detalhe-sol2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol2' class='detalhe-tecnico'>Definir onde cortar. Use um gabarito 15 graus e serra circular
+            ou use um transferidor para marcação do corte e cortar com serrote. Depois, preparar as junções para
+            colagem. Para preparo, lixar ambas as partes no sentido oposto dos veios da madeira até que toda as
+            superficies fiquem ranhuradas. Outra forma é sobrepor as duas partes na mesma angulação e lixá-las
+            simultaneamente. Depois, usar uma ponta fina (prego) para fazer ranhuras nas peças
+            <h5>Como Fazer:</h5>
+            <ul>
+              <li>Marcar com perfeição o local do corte</li>
+              <li>Usar serrote para cortar. Ou, na serra fita, usar um gabarito de 15 graus para guiar o corte</li>
+              <li>Após cortado, lixar as partes a serem unidas ou plainar, até que estejam encaixando-se perfeitamente.
+              </li>
+              <li>Passar lixa grossa (36 ou 40) contra as fibras nas partes a serem unidas</li>
+              <li>Melhorar as partes a serem unidas aprofundando os vincos riscando com um prego ou furador, contra as
+                fibras</li>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol3' class='sub-check' />
+          <label for='sol3' class='subetapa-label'>Preparar o taco do tróculo para colagem</label>
+          <button data-target='detalhe-sol3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol3' class='detalhe-tecnico'>Os tacos para o tróculo podem ser retirados da sobra do próprio
+            braço. Basta preparar o braço longo o suficiente para isso. Ou, pode-se por optar por bloco único ou blocos
+            maiores, sempre com a mesma madeira do braço. O tóculo pode ter o filete de reforço ou não, fica a critério
+            do luthier.
+            <h5>Medidas do tróculo:</h5>
+            <p>As peças devem ter a largura do braço bruto, a altura delas somadas deve ser de pelo menos a altura da
+              frente da caixa de ressonância do instrumento e o comprimento de uns 150 mm (suficiente para o troculo
+              externo e interno). Medir com o molde do modelo do braço para ter certeza do tamanho das peças.</p>
+            <h5>Como Fazer:</h5>
+            <ul>
+              <li>Marcar onde cortar o braço para aproveitar a sobra para fazer o trúculo. Nesse caso, usar 3 cortes com
+                espessura do braço (+- 25mm), proporcionando altura mínima necessária para o tróculo (+- 100 mm).</li>
+              <li>Pode-se optar por blocos de madeira, utilizar 2 ou 3 blocos que somem a altura mínima necessária para
+                o tróculo. </li>
+              <li>Passar lixa grossa (36 ou 40) contra as fibras nas partes a serem unidas</li>
+              <li>Melhorar as partes a serem unidas aprofundando os vincos riscando com um prego ou furador, contra as
+                fibras</li>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol4' class='sub-check' />
+          <label for='sol4' class='subetapa-label'>Colar Headstock e Tróculo no braço</label>
+          <button data-target='detalhe-sol4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol4' class='detalhe-tecnico'>Passar pouca cola Titebond, em um só lado das peças. Juntar e
+            alinhar. Pressionar com grampos protegendo as partes para não ficarem marcadas. Curar por 12 horas.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol5' class='sub-check' />
+          <label for='sol5' class='subetapa-label'>Esquadrejar o braço</label>
+          <button data-target='detalhe-sol5' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol5' class='detalhe-tecnico'>Aplainar todos os lados e esquadrejar a parte do tróculo para
+            que as próximas etapas fiquem mais fáceis de executar. Usar plaina, desengrossadeira e serra circular para o
+            trabalho</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol6' class='sub-check' />
+          <label for='sol6' class='subetapa-label'>Colar a Soleta no Headstock</label>
+          <button data-target='detalhe-sol6' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol6' class='detalhe-tecnico'>
+            <ul>
+              <li>Após a cura da mão e tróculo, ranhurar (Passar lixa grossa (36 ou 40) contra as fibras) as peças parte
+                superior da mão e soleta onde serão unidas. </li>
+              <li>Passar pouca cola Titebond, em um só lado das peças. Juntar e alinhar. Pressionar com grampos
+                protegendo as partes para não ficarem marcadas. </li>
+              <li>Unir as peças e pressionar com grampos</li>
+              <li>Curar por 04 horas.</li>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol7' class='sub-check' />
+          <label for='sol7' class='subetapa-label'>Riscar e Slotar e usinar a mão</label>
+          <button data-target='detalhe-sol7' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol7' class='detalhe-tecnico'>Riscar e usinar a mão e o tróculo.
+            <h5>Como Fazer a mão:</h5>
+            <ul>
+              <li>Riscar o centro do braço. Riscar o modelo da mão. </li>
+              <li>Usinar a mão cortando com serrinha a silhueta (rente ao risco do molde). Depois, usar o molde de guia
+                para tupia com fresa rolamento superior e usinar com a tupia regulada. </li>
+              <li>Após a silhueta pronta, fazer furos com broca d boa espessura no local dos vincos da mão, para
+                possibilitar trabalhar com a serrinha (tico-tico).</li>
+              <li>Com a serrinha, cortar rente à marcação</li>
+              <li>Usar a tupia com fresa rolamentada superior para concluir a usinagem</li>
+            </ul>
+            <h5>Furos da Tarracha:</h5>
+            <ul>
+              <li>Fazer marcação correta dos pontos para furar </li>
+              <li>Usar, de preferência, um guia para furação perfeita </li>
+              <li>Usar furadeira potente com broca levemente mais grossa que o diâmetro dos pinos da tarracha</li>
+              <li>Testar as tarrachas na mão</li>
+            </ul>
+            <h5>Usinar o recuo e Lixar a mão:</h5>
+            <ul>
+              <li>Marcar o espaçõ para o recuo (local de entrada das cordas na mão)</li>
+              <li>Usinar com cuidado, usando limas, grossas e facas</li>
+              <li>Concluir com lixamento progressido de toda a mão do instrumento</li>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='sol8' class='sub-check' />
+          <label for='sol8' class='subetapa-label'>Riscar e Usinar o Tóculo</label>
+          <button data-target='detalhe-sol8' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-sol8' class='detalhe-tecnico'>Riscar todos os detalhes do tróculo, de acordo com o modelo
+            escolhido. Usar a serra circular para abrir os slots no tróculo para encaixe das faixas. O pescoço do
+            tróculo é de 12 mm. Usinar o tróculo de acordo com o modelo, usando limas, grosas, serras, formões, facas,
+            até que ele fique minimamente perfeito (o tróculo interno e também o externo)
+          </div>
+        </div>
+
+    </section>
+
+    <!-- Tampo -->
+    <section class='etapa' id='etapa-tampo' data-etapa='tampo'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Tampo</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo1' class='sub-check' />
+          <label for='tampo1' class='subetapa-label'>Retificar juntas</label>
+          <button data-target='detalhe-tampo1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo1' class='detalhe-tecnico'>A retificação das juntas podem ser feitas com lixa, plaina
+            manual ou tupia/ validar se há frestas na junção.
+            <h5>Como eu gosto de fazer:</h5>
+            <ul>
+              <li>Preparar uma lixa grossa (grão 36 ou 40), com comprimento de pelo menos uns 600mm e colocá-la sobre
+                uma base firme e plana</li>
+              <li>Juntar as duas partes do tampo e lixar juntas o lado que será unico</li>
+              <li>Vai lixando até que a união fique boa, ou seja, verifique a união contra a luz para ver se não há
+                frestas</li>
+            </ul>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo2' class='sub-check' />
+          <label for='tampo2' class='subetapa-label'>Colar e raspar</label>
+          <button data-target='detalhe-tampo2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo2' class='detalhe-tecnico'>Unir tampo com cola e prensa. Depois de colado, usar raspilha
+            para higienizar.
+            <h4>Se não tem lixadeira de rolo, é hora de desengrossar para 3 mm na desengrossadeira. </h4>
+            <h5>Como fazer:</h5>
+            <p>Fazer uma prensa de cunha. Sobre uma base quadrada ou retangular, plainada, prender uma travessa 90 graus
+              encostada na beira do lado esquerdo da base. No outro lado, disponibilizar uma travessa móvel (que pode
+              ser fixada com pregos ou granpos). Colocar cola na união do tampo e deitá-lo sobre a prensa, encostando o
+              lado esquerdo na travessa fixa. No lado direito do tampo, encostar a travessa móvel, e prende-la justa e
+              rente ao tampo. Para dar pressão, empurrar/bater na parte de traz do tampo contra
+              as travessas e prende-la com uma matajunta/grampos para que a peça não saia do lugar</p>
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo3' class='sub-check' />
+          <label for='tampo3' class='subetapa-label'>Incrustar roseta</label>
+          <button data-target='detalhe-tampo3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo3' class='detalhe-tecnico'>Depois do tampo colado e curado, higienizar bem a junção.
+            Então, Localizar perfeitamente no tampo, o centro e as bordas da roseta de acordo com o modelo e fazer um
+            furo 4 mm bem no centro.
+            <h5>Slotar o local da roseta:</h5>
+            <ul>
+              <li>Colocar o tampo sobre o molde com pino para fixar o compasso com lámina.</li>
+              <li> Ajustar o compaço (raio e profundidade) de acordo com a roseta. Riscar com o compasso bem nas
+                marcaçoes do
+                raio interno e externo.</li>
+              <li>Usar tupia com fresa ajustada à profundidade correta, com muito cuidado, para fazer o slot no tampo
+              </li>
+              <li>Terminar de abrir o slot da roseta com formão e faca afiada.</li>
+              <li>Incurstar a roseta com cola instantânea ou Titebond.</li>
+            </ul>
+
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo4' class='sub-check' />
+          <label for='tampo4 class=' subetapa-label'>Desengrossar até 3 mm</label>
+          <button data-target='detalhe-tampo4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo4' class='detalhe-tecnico'>A espessura inicial do tampo é de 5 a 6 mm. Agora, após
+            incrustar a roseta, ajustar a espessura para 3 mm, usando lixadeira de cilíndro. Opcionalmente, quem não tem
+            lixadeira de cilindro, pode usar outra lixadeira, porém o serviço é arduo e menos perfeito. Eu faço esse
+            desengrosso antes de unir as peças. Primeiro retifico as juntas das peças e antes de colá-las, levo cada uma
+            das peças para o desengrosso. Para conseguir chegar a 3 mm, preciso elevar a base da desengrossadeira com um
+            mdf perfeitamente plano.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo5' class='sub-check' />
+          <label for='tampo5' class='subetapa-label'>Abrir boca (soundhole)</label>
+          <button data-target='detalhe-tampo5' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo5' class='detalhe-tecnico'>Ajustar o raio do centro da roseta para (-) 3 a 4 mm e usar o
+            compasso de metal sobre a base para abrir a boca do instrumento. Lixar para perfeição da boca do
+            instrumento.
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo6' class='sub-check' />
+          <label for='tampo6' class='subetapa-label'>Lixar o tampo</label>
+          <button data-target='detalhe-tampo6' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo6' class='detalhe-tecnico'>Fazer lixamento progressivo até grão 400 para preparar o
+            tampo para receber as travessas e leque harmônico.
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='tampo7' class='sub-check' />
+          <label for='tampo7' class='subetapa-label'>Instalar Travessas, reforço boca e leque harmônico</label>
+          <button data-target='detalhe-tampo7' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-tampo7' class='detalhe-tecnico'>Riscar detalhes da silhueta, travessas e leque harmônico.
+            Colar travessas, reforço da boca e leque harmônico e pressionar com barras na caixa de colagem. --- Apos a
+            cura moldar o leque e travessas usar formão, plaina manual mini e lixas grão 120 - 400 / a altura final dos
+            encaixes das travessas no corpo devem ter 3mm</div>
+        </div>
+        <p class='note-mm'>Manter o tampo acomodado na base / molde.</p>
+    </section>
+
+    <!-- Fundo -->
+    <section class='etapa' id='etapa-fundo' data-etapa='fundo'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Fundo</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='fundo1' class='sub-check' />
+          <label for='fundo1' class='subetapa-label'>Retificar</label>
+          <button data-target='detalhe-fundo1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fundo1' class='detalhe-tecnico'>Usar o mesmo processo da preparação do tampo. A retificação
+            das juntas podem ser feitas com lixa, plaina manual out tupia/ validar se ha frestas na junção</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fundo2' class='sub-check' />
+          <label for='fundo2' class='subetapa-label'>Unir e colar fundo</label>
+          <button data-target='detalhe-fundo2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fundo2' class='detalhe-tecnico'>Retificar o filete e uní-lo juntamente com o fundo, use cola
+            Titebond e usar o gig prensa e grampos conforme descrito na etapa da colagem do tampo</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fundo3' class='sub-check' />
+          <label for='fundo3' class='subetapa-label'>Raspar e nivelar a 3 mm</label>
+          <button data-target='detalhe-fundo3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fundo3' class='detalhe-tecnico'>Usar raspilha e lixas para retificar em 3mm</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fundo4' class='sub-check' />
+          <label for='fundo4' class='subetapa-label'>Instalar Barras e reforço central</label>
+          <button data-target='detalhe-fundo4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fundo4' class='detalhe-tecnico'>Preparar o reforço central (largura 25 mm, espessura 2 mm)
+            cortado contrafibra, para maior sustentação. Tracejar e colar barras do fundo e o reforço central com cola e
+            pressão; Pode também pre moldar as travessas antes de colar e finaliza-las apos a colagem para evitar danos
+            ao fundo.
+            Apos a cura, moldar travessas usar formão, plaina manual mini e lixas grão 120 - 400 / a altura final dos
+            encaixes das travessas no corpo devem ter 3mm</div>
+        </div>
+        <p class='note-mm'>Manter o fundo acomodado na base / molde.</p>
+    </section>
+
+    <!-- Laterais -->
+    <section class='etapa' id='etapa-laterais' data-etapa='laterais'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Laterais (Faixas)</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='lat1' class='sub-check' />
+          <label for='lat1' class='subetapa-label'>Dobrar faixas</label>
+          <button data-target='detalhe-lat1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-lat1' class='detalhe-tecnico'>Cortar, retificar, marcar o ponto das dobras e dobrar ---
+            Estufa por 24h em molde --- Retirar do molde e deixar mais 3 dias na estufa
+            Usar agua fervendo e gig para dobrar as laterais de acordo com a silhueta do instrumento. O Gig pode ser
+            construido com um cano inoxidável de uns 4 mm e uma resistência de cerâmica. Apos esquentar o cano, molhe as
+            faixas com água fervente nos pontos de dobra e use o gig para dobrá-las. Prestar atenção ao lado das faixas,
+            pois a superfície base plana é a parte que vai colada no tampo do violão. </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='lat2' class='sub-check' />
+          <label for='lat2' class='subetapa-label'>Instalar contrafaixas (linings)</label>
+          <button data-target='detalhe-lat2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-lat2' class='detalhe-tecnico'>Particularmente, não tenho usado. Se houver, retificar e colar.
+            A contrafaixa geralmente é feita de madeira, como mogno ou cedro, que são materiais leves e com boas
+            propriedades acústicas. Em alguns casos, materiais sintéticos também podem ser utilizados.
+            Em resumo: A contrafaixa é um componente interno importante na construção de violões, que desempenha um
+            papel crucial na estrutura, estabilidade e sonoridade do instrumento. </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='lat3' class='sub-check' />
+          <label for='lat3' class='subetapa-label'>Redobrar antes de montar a caixa</label>
+          <button data-target='detalhe-lat3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-lat3' class='detalhe-tecnico'>Um passo importante, antes da montagem, é redobrar as faixas
+            laterais no molde, para ajustes finos. Colocar as faixas no molde fêmea e usar soprador térmico para
+            redobrar as faixas. Prender com grampos e deixar descansar para consolidadar a forma pretendida.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Montagem da Caixa -->
+    <section class='etapa' id='etapa-mont-caixa' data-etapa='mont-caixa'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Montagem da Caixa</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa1' class='sub-check' />
+          <label for='caixa1' class='subetapa-label'>Colar laterais ao taco/Tróculo</label>
+          <button data-target='detalhe-caixa1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa1' class='detalhe-tecnico'>Medir, esquadrejar e marcar o ponto exato de corte da frente
+            das laterais (parte que encaixa no tróculo). Usar serrote ou serrinha fina para cortar na marcação. O ponto
+            exato do corte (+-) 6 mm menor que o meio do molde, pois o pescoço do tróculo (onde ocorrerá a junção das
+            partes) tem 12 mm de largura. Passar cola Titebond, encaixar a lateral no slot do tróculo, alinhar e usar
+            uma cunha e contra-cunha para pressionar. Repetir os mesmos passos com a outra lateral. Depois de curada,
+            medir as laterais para colagem da culatra. Na culatra, colar o filete (se houver), então colar as laterais
+            na culatra. Deixar curar. </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa2' class='sub-check' />
+          <label for='caixa2' class='subetapa-label'>Colar o reengrosso</label>
+          <button data-target='detalhe-caixa2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa2' class='detalhe-tecnico'>Pode-se comprar reengrosso pronto ou fabricá-los. Antes da
+            colar o reengrosso, acomodar o braço/laterias no molde fêmea, e pressioná-lo com ripas para que fiquem
+            justos ao molde. Colar o reengrosso com Titebond e usar grampos/prendedores para pressionar as peças. </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa3' class='sub-check' />
+          <label for='caixa3' class='subetapa-label'>Alinhar o braço ao corpo</label>
+          <button data-target='detalhe-caixa3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa3' class='detalhe-tecnico'>Depois do reengrosso curado, alinhar centro do braço com
+            centro do corpo e inserir cunha nos vãos de encaixe do braço com as laterais para que fique alinhado</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa4' class='sub-check' />
+          <label for='caixa4' class='subetapa-label'>Colar tampo ao conjunto</label>
+          <button data-target='detalhe-caixa4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa4' class='detalhe-tecnico'>Medir e riscar onde cortar os encaixes das travessas do tampo
+            no reengrosso. Cortar na profundidade exata e usar a Tupia para abrir o encaixa. Depois, finalizar com lima.
+            Testar se o tampo encaixa perfeitamente, então colar com titebond. Nesse momento, o tampo está acomodado e
+            parafusado no molde fêmea e este está dentro da mesa de colagem. Então, usar travessas no fundo e ripas
+            flexíveis para dar pressão, fazendo com que o tampo, laterais e reengrosso se unam.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa5' class='sub-check' />
+          <label for='caixa5' class='subetapa-label'>Instalar reforços internos laterais</label>
+          <button data-target='detalhe-caixa5' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa5' class='detalhe-tecnico'>Depois de curado, higienizar e lixar as partes internas. Se
+            houver reforços laterais, instale-os nesse momento.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='caixa6' class='sub-check' />
+          <label for='caixa6' class='subetapa-label'>Colar fundo</label>
+          <button data-target='detalhe-caixa6' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-caixa6' class='detalhe-tecnico'>Medir e riscar onde cortar os encaixes das barras do fundo no
+            reengrosso. Cortar na profundidade exata e usar a Tupia para abrir o encaixa. Depois, finalizar com lima.
+            Testar se o fundo encaixa perfeitamente, então colar com titebond. Lembrar de retirar as ripas de pressão
+            interna. Retirar também o instrumento do molde fêmea. Agora, o fundo está acomodado no molde fêmea e este
+            está dentro da mesa de colagem. Então, encaixar o instrumento no fundo e usar taquinhos para protejer o
+            tampo e ripas flexíveis para dar pressão, fazendo com que o fundo, laterais e reengrosso se unam</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filetes -->
+    <section class='etapa' id='etapa-filetes' data-etapa='filetes'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Filetes / Binding & Purfling</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='fil1' class='sub-check' />
+          <label for='fil1' class='subetapa-label'>Abrir canal filetes</label>
+          <button data-target='detalhe-fil1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fil1' class='detalhe-tecnico'>Desbastar, lixar, fresar caixa Com tupia e lixadeira. Primeiro,
+            medir exatamente a profundidade e larguda da fresagem, de acordo com o tamanho do filete externo. Testar a
+            fresagem num pedaço de madeira e depois fresar o corpo do instrumento. Cuidar para não fresar o filete da
+            culatra, pois deve-se fresá-lo com formão para perfeito encontro dos filetes. Depois, medir altura e
+            profundidade do filete interno e regular a tupia perfeitamente. Testar novamente na madeira antes de fresar
+            o instrumento. </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fil2' class='sub-check' />
+          <label for='fil2' class='subetapa-label'>Instalar filetes/purfling</label>
+          <button data-target='detalhe-fil2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fil2' class='detalhe-tecnico'>Primeiro, instale os filetes internos e use fita crepe para
+            mantê-lo posicionado até a cura da cola. Depois, instalar os filetes externos, com cuidado para não
+            quebrá-los nas curvas. Usar fita crepe para prendê-los e para finalizar usar corda ou borracha para dar
+            pressão forte e colagem mais efetiva. Eu aprendi essa etapa usando borracha de câmara de ar de bicicleta.
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fil3' class='sub-check' />
+          <label for='fil3' class='subetapa-label'>Pézinho do Tróculo</label>
+          <button data-target='detalhe-fil3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fil3' class='detalhe-tecnico'>Preparar a base para receber o pezinho do tróculo. Preparar o
+            pézinho do tróculo, então colar (pode ser com cola instantânea). Depois, ajustar centro e moldar</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='fil3' class='sub-check' />
+          <label for='fil4' class='subetapa-label'>Raspar e nivelar bordas</label>
+          <button data-target='detalhe-fil4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-fil4' class='detalhe-tecnico'>Depois da cura, hora de higienizar e raspar o instrumento,
+            preparando-o para a etapa de lixamento. Usa-se cola instantânea para impermeabilizar pequenos defeitos na
+            madeira e na colagem. </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Escala / Trastes -->
+    <section class='etapa' id='etapa-escala' data-etapa='escala'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Escala / Trastes</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='escala1' class='sub-check' />
+          <label for='escala1' class='subetapa-label'>Cortar slots dos trastes</label>
+          <button data-target='detalhe-escala1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-escala1' class='detalhe-tecnico'>Retificar a escala, tracejar e rasgar trastes com precisão.
+            Pode-se usar gabarito para corte preciso ou usar serra de mesa com disco de corte de 6 mm. Após aberto os
+            slots, corta a escala no modelo tracejado e instalar os filetes laterais da escala. Furar e colar inlay caso
+            houver
+          </div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='escala2' class='sub-check' />
+          <label for='escala2' class='subetapa-label'>Instalar marcadores (opcional)</label>
+          <button data-target='detalhe-escala2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-escala2' class='detalhe-tecnico'>Se houver marcadores de casas, hora de instalar de acordo
+            com o projeto</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='escala3' class='sub-check' />
+          <label for='escala3' class='subetapa-label'>Colar escala no braço</label>
+          <button data-target='detalhe-escala3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-escala3' class='detalhe-tecnico'>Preparar os materiais e ensaiar a colagem. Preparar as
+            partes a serem coladas usando lixa abrasiva para melhor aderência. Pode-se fazer um furo no traste 1 e um
+            furo no traste 12, de 1,5 mm, para inserir um preguinho que ajudará a manter a escala posicionada. Depois,
+            passar cola em uma das partes e uní-las com ótimo alinhamento. Usar proteção nas partes e grampos para
+            pressionar.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='escala4' class='sub-check' />
+          <label for='escala4' class='subetapa-label'>Plainar e Lixar Progressivamente </label>
+          <button data-target='detalhe-escala4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-escala4' class='detalhe-tecnico'>Plainar a escala para que fique mais perfeitamente reta
+            possivel. Para isso, uma estratégia é usar uma lixa grao 40/50 colada em um taco robusto (uns 30 cm de
+            comprimento e da ldargura da escala). Conferir com uma regua a qualidade do aplainamento. Para terminar,
+            lixar progressivamente com lixas grão 80 até grão 2000</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='escala5' class='sub-check' />
+          <label for='escala5' class='subetapa-label'>Instalar os trastes </label>
+          <button data-target='detalhe-escala5' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-escala5' class='detalhe-tecnico'>Depois de finalizada a pintura, instala-se os trastes.
+            Protejer área da caixa de ressonância ao redor da escala com fita crepe para evitar danos. Medir os tamanho
+            de cada traste e cortá-los uns 3mm maior que o comprimento do slot. Depois, desbastar com lima a parte que
+            encaixa no slot, para que ela fique do tamanho do slot e a parte de cima cubra toda a area da scala (slot +
+            filete). por um pingo de cola instantânea em cada extremidade do traste e encaixar o traste no slot, então
+            bater com martelo de borracha até encaixar perfeitamente. Depois de todos instalados, limar as pontas para
+            que fiquem rente ao filete (45 graus). PAra regular a uniformidade dos trastes, usar regua ou fletboard para
+            medir. Desbastar com lima os trastes mais altos, até que todos fiquem alinhados. Para finalizar, usar
+            taco/lixa e, finalmente, usar lima solto arredondado para uniformizar os trastes</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cavalete -->
+    <section class='etapa' id='etapa-cavalete' data-etapa='cavalete'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Cavalete</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='cav1' class='sub-check' />
+          <label for='cav1' class='subetapa-label'>Preparar cavalete (alturas, canais, furação)</label>
+          <button data-target='detalhe-cav1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-cav1' class='detalhe-tecnico'>Usar lima, grosa e lixamento progressivo para acabamento. Lixar
+            a parte de baixo (apoio no tampo) com gabarito taco de lixa com a curvatura do tampo, para que o cavalete
+            acomode-se perfeitamente na área de colagem. Fazer a furação para passagem das cordas no cavalete.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='cav2' class='sub-check' />
+          <label for='cav2' class='subetapa-label'>Marcar área de colagem antes do acabamento</label>
+          <button data-target='detalhe-cav2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-cav2' class='detalhe-tecnico'>Marcar exatamente a área de colagem usando réguas e gabarito de
+            distância do cavalete. Centralizar exatamente o cavalete para marcação. Simular com linha o posicionamento
+            das cordas para ter certeza da posição do cavalete.Circundar o cavalete com fita crepe. Apos a cirundação
+            com fita crepe, retirar o cavalete do tampo e marcar com lápis onde será a área de colagem, então, retirar
+            as fitas crepe que circundam a área e colar novas fita crepe exatamente no local de colagem, para que
+            durante o processo de pintura o verniz não pegue na área de colagem do cavalete.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='cav3' class='sub-check' />
+          <label for='cav3' class='subetapa-label'>Colar cavalete no tampo</label>
+          <button data-target='detalhe-cav3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-cav3' class='detalhe-tecnico'>Pintar o cavalete. Antes de passar a última mão do verniz no
+            tampo, colar o cavalete no local. Retirar as fitas crepe. Ensaiar a colagem com os grampos e proteção do
+            cavalete. Prestar atenção para não danificar o tampo. Usar cola Titebond somente de um lado das peças. Colar
+            e pressionar com grampos adequados e deixar curar por 12 horas.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='cav4' class='sub-check' />
+          <label for='cav4' class='subetapa-label'>Construir o rastilho</label>
+          <button data-target='detalhe-cav4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-cav4' class='detalhe-tecnico'>Usar osso para confecção do rastilho de acordo com o tamanho do
+            slot do cavalete.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acabamento -->
+    <section class='etapa' id='etapa-acabamento' data-etapa='acabamento'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Acabamento (Lixar, Selar, Verniz / Goma-laca)</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='acab1' class='sub-check' />
+          <label for='acab1' class='subetapa-label'>Lixamento progressivo</label>
+          <button data-target='detalhe-acab1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-acab1' class='detalhe-tecnico'>Lixar progressivamente do grão 80 até o grão 400. Pode-se usar
+            lixadeira orbital para auxiliar no processo.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='acab2' class='sub-check' />
+          <label for='acab2' class='subetapa-label'>Seladora / Pore fill</label>
+          <button data-target='detalhe-acab2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-acab2' class='detalhe-tecnico'>Usar seladora para preencher os poros e pequenos defeitos na
+            madeira. Pode-se usar cola instantânea ou uma massa feita com pó da madeira e seladora para o trabalho.
+            Depois de curado, lixar progressivamente até grão 400 para receber o acabamento</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='acab3' class='sub-check' />
+          <label for='acab3' class='subetapa-label'>Aplicar acabamento final (verniz/goma-laca)</label>
+          <button data-target='detalhe-acab3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-acab3' class='detalhe-tecnico'>Se usar goma laca, ir aplicando a técnica polimento Frances.
+            Se usar verniz, passar seladora, lixar progressivamente e envernizar.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='acab4' class='sub-check' />
+          <label for='acab4' class='subetapa-label'>Cura / Polimento final</label>
+          <button data-target='detalhe-acab4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-acab4' class='detalhe-tecnico'>Depois de curado, fazer o polimento final com lixa finíssima e
+            cera de carnauba</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Montagem Final -->
+    <section class='etapa' id='etapa-mont-final' data-etapa='mont-final'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Montagem Final</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='mont1' class='sub-check' />
+          <label for='mont1' class='subetapa-label'>Instalar tarraxas</label>
+          <button data-target='detalhe-mont1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-mont1' class='detalhe-tecnico'>Instalar e testar as tarrachas</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='mont2' class='sub-check' />
+          <label for='mont2' class='subetapa-label'>Instalar pestana</label>
+          <button data-target='detalhe-mont2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-mont2' class='detalhe-tecnico'>Usar osso para fazer a pestana de acordo com o tamanho do
+            slot. Marcar e vincar o apoio das cordas. Colar a pestana no local. Apos instalada as cordas, calibrar a
+            altuda das mesmas.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='mont3' class='sub-check' />
+          <label for='mont3' class='subetapa-label'>Instalar rastilho</label>
+          <button data-target='detalhe-mont3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-mont3' class='detalhe-tecnico'>Colocar o rastilho no local, sem colar.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='mont4' class='sub-check' />
+          <label for='mont4' class='subetapa-label'>Encordoar</label>
+          <button data-target='detalhe-mont4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-mont4' class='detalhe-tecnico'>Proteger o instrumento e instalar o encordoamento.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Regulagem & Entrega -->
+    <section class='etapa' id='etapa-regulagem' data-etapa='regulagem'>
+      <header class='etapa-header' tabindex='0'>
+        <span class='etapa-title'>Regulagem & Entrega</span>
+        <span class='etapa-progress'></span>
+        <span class='etapa-tick' aria-hidden='true'>✔</span>
+      </header>
+      <div class='etapa-body'>
+        <div class='subetapa'>
+          <input type='checkbox' id='reg1' class='sub-check' />
+          <label for='reg1' class='subetapa-label'>Ajustar ação / altura cordas</label>
+          <button data-target='detalhe-reg1' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-reg1' class='detalhe-tecnico'>Verificar a pestana e o rastilho para ajustar a altura das
+            cordas de acordo com a preferencia do cliente.</div>
+        </div>
+        <div class='subetapa'>
+          <input type='checkbox' id='reg2' class='sub-check' />
+          <label for='reg2' class='subetapa-label'>Checar entonação (compensação)</label>
+          <button data-target='detalhe-reg2' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+          <div id='detalhe-reg2' class='detalhe-tecnico'>Checar as oitavas na casa 12 e fazer a compensação no rastilho.
+            Se a nota da oitava apresentar tom um pouco mais baixa, deve-se encurtar a distância do traste 12 até o
+            ponto de apoio do rastilho. Se um pouco mais alta, deve-se alongar a distância. PAra ajuste e compensação da
+            entonação, usar lima no rastilho, ajustando para que a afinação fique adequada.<div>
+            </div>
+            <div class='subetapa'>
+              <input type='checkbox' id='reg3' class='sub-check' />
+              <label for='reg3' class='subetapa-label'>Checar acabamento final / limpeza</label>
+              <button data-target='detalhe-reg3' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+              <div id='detalhe-reg3' class='detalhe-tecnico'>Repassar checklist e ajustar detalhes finais</div>
+            </div>
+            <div class='subetapa'>
+              <input type='checkbox' id='reg4' class='sub-check' />
+              <label for='reg4' class='subetapa-label'>Instalar etiqueta interna / documentação</label>
+              <button data-target='detalhe-reg4' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+              <div id='detalhe-reg4' class='detalhe-tecnico'>Preparar e instalar a etiqueta de fabricação</div>
+            </div>
+            <div class='subetapa'>
+              <input type='checkbox' id='reg5' class='sub-check' />
+              <label for='reg5' class='subetapa-label'>Entrega ao cliente / fotos finais</label>
+              <button data-target='detalhe-reg5' class='subetapa-toggle-detail' type='button'>Detalhe</button>
+              <div id='detalhe-reg5' class='detalhe-tecnico'>Parabéns! Excelente trabalho concluido. Fazer fotos e
+                filmagens do instrumento para rede social e arquivo<div class='subetapa'>
+                </div>
+              </div>
+            </div>
+    </section>
+  </main>
+
+  <!-- =====================================================
+     INSTRUÇÕES PARA SEPARAR EM ARQUIVOS EXTERNOS
+===================================================== -->
+  <!--
+PARA SEPARAR:
+1. Crie três arquivos:
+   • checklist-violao.html  (este arquivo, mas REMOVA o bloco <style> e <script> interno)
+   • checklist-violao.css   (copie todo o conteúdo do <style> para cá)
+   • checklist-violao.js    (copie todo o conteúdo do <script> para cá)
+
+2. No <head> do HTML, adicione:
+     <link rel="stylesheet" href="checklist-violao.css" />
+
+3. Antes de fechar </body>, adicione:
+     <script src="checklist-violao.js"></script>
+
+4. Se quiser usar um logotipo: substitua LOGO_KEY no localStorage com uma string base64.
+   Exemplo no console do navegador:
+   localStorage.setItem('violaoLogoBase64','data:image/png;base64,SEU_BASE64_AQUI');
+
+5. Para exportar PDF: clique no botão "Gerar PDF" e, no diálogo de impressão, escolha "Salvar como PDF".
+-->
+  <script src="checklist-violao.js"></script>
+</body>
+
+</html>
